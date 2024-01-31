@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+</head>
+<body>
+
+<canvas id="minha-tela" width="800" height="400" style="border: black solid 1px;"> </canvas>  
+<script>
+  var canvas = document.getElementById("minha-tela");
+  var ctx = canvas.getContext("2d");
+  var bola = 10;
+  var x = canvas.width/2;
+  var y = canvas.height-30;
+  var dx = 2;
+  var dy = -2;
+  var altura = 10;
+  var largura = 75;
+  var paddleX = (canvas.width-largura)/2;
+  var direita = false;
+  var esquerda = false;
+  var cont_linhas = 5;
+  var cont_colunas = 3;
+  var linha_largura = 75;
+  var linha_altura = 20;
+  var linha_padding = 10;
+  var Top = 30;
+  var Left = 30;
+  var Pontuação = 0;
+
+  var bricks = [];
+  for(var c=0; c<cont_colunas; c++) {
+    bricks[c] = [];
+    for(var r=0; r<cont_linhas; r++) {
+      bricks[c][r] = { x: 0, y: 0, status: 1 };
+    }
+  }
+
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+
+  function keyDownHandler(e) {
+      if(e.key == "Right" || e.key == "ArrowRight") {
+          direita = true;
+      }
+      else if(e.key == "Left" || e.key == "ArrowLeft") {
+          esquerda = true;
+      }
+  }
+
+  function keyUpHandler(e) {
+      if(e.key == "Right" || e.key == "ArrowRight") {
+          direita = false;
+      }
+      else if(e.key == "Left" || e.key == "ArrowLeft") {
+          esquerda = false;
+      }
+  }
+  function collisionDetection() {
+    for(var c=0; c<cont_colunas; c++) {
+      for(var r=0; r<cont_linhas; r++) {
+        var b = bricks[c][r];
+        if(b.status == 1) {
+          if(x > b.x && x < b.x+linha_largura && y > b.y && y < b.y+linha_altura) {
+            dy = -dy;
+            b.status = 0;
+            Pontuação++;
+            if(Pontuação == cont_linhas*cont_colunas) {
+              alert("YOU WIN, CONGRATS!");
+              document.location.reload();
+              clearInterval(interval); 
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function desenhaBola() {
+    ctx.beginPath();
+    ctx.arc(x, y, bola, 0, Math.PI*2);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+  }
+  function desenha_plataforma() {
+    ctx.beginPath();
+    ctx.rect(paddleX, canvas.height-altura, largura, altura);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.closePath();
+  }
+  function desenha_tijolos() {
+    for(var c=0; c<cont_colunas; c++) {
+      for(var r=0; r<cont_linhas; r++) {
+        if(bricks[c][r].status == 1) {
+          var tijoloX = (r*(linha_largura+linha_padding))+Left;
+          var tijoloY = (c*(linha_altura+linha_padding))+Top;
+          bricks[c][r].x = tijoloX;
+          bricks[c][r].y = tijoloY;
+          ctx.beginPath();
+          ctx.rect(tijoloX, tijoloY, linha_largura, linha_altura);
+          ctx.fillStyle = "blue";
+          ctx.fill();
+          ctx.closePath();
+        }
+      }
+    }
+  }
+  function desenha_Pontuação() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "red";
+    ctx.fillText("Pontuação: "+Pontuação, 8, 20);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    desenha_tijolos();
+    desenhaBola();
+    desenha_plataforma();
+    desenha_Pontuação();
+    collisionDetection();
+
+    if(x + dx > canvas.width-bola || x + dx < bola) {
+      dx = -dx;
+    }
+    if(y + dy < bola) {
+      dy = -dy;
+    }
+    else if(y + dy > canvas.height-bola) {
+      if(x > paddleX && x < paddleX + largura) {
+        dy = -dy;
+      }
+      else {
+        alert("GAME OVER");
+        document.location.reload();
+        clearInterval(interval); 
+      }
+    }
+
+    if(direita && paddleX < canvas.width-largura) {
+      paddleX += 7;
+    }
+    else if(esquerda && paddleX > 0) {
+      paddleX -= 7;
+    }
+
+    x += dx;
+    y += dy;
+  }
+
+  var interval = setInterval(draw, 10);
+</script>
+</body>
+</html>
